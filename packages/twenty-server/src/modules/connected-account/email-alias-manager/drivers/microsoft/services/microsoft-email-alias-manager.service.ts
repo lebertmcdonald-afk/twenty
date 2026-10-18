@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { isNonEmptyString } from '@sniptt/guards';
-
+import { extractEmailAliasesFromProxyAddresses } from 'src/modules/connected-account/email-alias-manager/drivers/microsoft/utils/extract-email-aliases-from-proxy-addresses.util';
 import { MicrosoftOAuth2ClientProvider } from 'src/modules/connected-account/oauth2-client-manager/drivers/microsoft/microsoft-oauth2-client.provider';
 import { type ConnectedAccountEntity } from 'src/engine/metadata-modules/connected-account/entities/connected-account.entity';
 
@@ -23,23 +22,6 @@ export class MicrosoftEmailAliasManagerService {
         throw new Error(`Failed to fetch email aliases: ${error.message}`);
       });
 
-    const proxyAddresses = response.proxyAddresses;
-
-    const handleAliases =
-      proxyAddresses
-        // @ts-expect-error legacy noImplicitAny
-        ?.filter((address) => {
-          return address.startsWith('SMTP:') === false;
-        })
-        // @ts-expect-error legacy noImplicitAny
-        .map((address) => {
-          return address.replace('smtp:', '').toLowerCase();
-        })
-        // @ts-expect-error legacy noImplicitAny
-        .filter((address) => {
-          return isNonEmptyString(address);
-        }) || [];
-
-    return handleAliases;
+    return extractEmailAliasesFromProxyAddresses(response.proxyAddresses);
   }
 }
